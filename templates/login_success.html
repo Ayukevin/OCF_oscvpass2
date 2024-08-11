@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% block body %}
+<section class="section">
+  <div class="container">
+    <div class="coulumns is-centered">
+      <h1>登入成功</h1>
+      <br />
+      <h2>姓名</h2>
+      <div class="box">{{user.name}}</div>
+      <br />
+      <h2>電子郵件</h2>
+      <div class="box">{{user.email}}</div>
+    </div>
+  </div>
+</section>
+{% endblock %}

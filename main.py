@@ -1,0 +1,62 @@
+from flask import Flask, redirect, url_for, session, request, jsonify,render_template
+from authlib.integrations.flask_client import OAuth
+import os
+import requests
+import setting
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# 配置 OAuth
+oauth = OAuth(app)
+oauth.register(**setting.google_os_setting) #*:list,tuple ; ** dict
+oauth.register(**setting.github_os_setting)
+
+@app.route('/')
+def index():
+    # return '''<a href="/login/google">google</a> 
+    # <a href="/login/github">github</a>'''
+    return render_template("login_page.html")
+
+@app.route('/index')
+def index2():
+    return render_template('test.html')
+
+#選擇登入方式
+@app.route("/login/<provider>")
+def login(provider):
+    if provider not in oauth._clients:
+        return 'provider not found',404
+    redirect_uri = url_for('auth_callback',provider=provider,_external = True)
+    return oauth.create_client(provider).authorize_redirect(redirect_uri)
+
+
+@app.route("/auth/callback/<provider>")
+def auth_callback(provider):
+    try:
+        if provider not in oauth._clients:
+            return 'provider not found',404
+        
+        token = oauth.create_client(provider).authorize_access_token()
+
+        if provider =="google":
+            userinfo_response = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo') #get用網址
+        elif provider =="github":
+            userinfo_response = oauth.github.get('https://api.github.com/user') #get用網址
+        
+        user_info = userinfo_response.json()
+        session['user'] = user_info
+        print(user_info)
+        return render_template("login_success.html",user = user_info)
+
+    except Exception as e:
+        return f'an error occured:{str(e)}',400
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user',None)
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(port=8080,host='0.0.0.0')
