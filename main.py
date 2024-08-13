@@ -3,6 +3,8 @@ from authlib.integrations.flask_client import OAuth
 import os
 import requests
 import setting
+import mysql.connector
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -14,13 +16,11 @@ oauth.register(**setting.github_os_setting)
 
 @app.route('/')
 def index():
-    # return '''<a href="/login/google">google</a> 
-    # <a href="/login/github">github</a>'''
-    return render_template("login_page.html")
+    return render_template("login_page.html") #首頁
 
 @app.route('/index')
 def index2():
-    return render_template('test.html')
+    return render_template('test.html')#登入頁面
 
 #選擇登入方式
 @app.route("/login/<provider>")
@@ -42,12 +42,13 @@ def auth_callback(provider):
         if provider =="google":
             userinfo_response = oauth.google.get('https://openidconnect.googleapis.com/v1/userinfo') #get用網址
         elif provider =="github":
+            print("hah")
             userinfo_response = oauth.github.get('https://api.github.com/user') #get用網址
         
         user_info = userinfo_response.json()
         session['user'] = user_info
-        print(user_info)
-        return render_template("login_success.html",user = user_info)
+        # print(user_info)
+        return render_template("login_success.html",user = user_info) #顯示登入成功
 
     except Exception as e:
         return f'an error occured:{str(e)}',400
@@ -59,4 +60,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(port=8080,host='0.0.0.0')
+    app.run(port=8080,host='0.0.0.0',debug=True)
