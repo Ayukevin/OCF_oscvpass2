@@ -10,10 +10,16 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 conn = mysql.connector.connect( **setting.my_sql_setting )
+
 cursor = conn.cursor()
+if conn.is_connected():
+    print("Connection successful!")
+else:
+    print("Connection failed!")
 
 cursor.execute("USE login_db;")
-cursor.execute("SELECT * FROM login_db;")
+cursor.execute("SELECT * FROM login;")
+cursor.fetchall()
 
 # 配置 OAuth
 oauth = OAuth(app)
@@ -53,7 +59,17 @@ def auth_callback(provider):
         
         user_info = userinfo_response.json()
         session['user'] = user_info
-        cursor.execute("INSERT INTO login_db (name,email)VALUES(user_info[name],user_info[email]")
+
+        try:
+            cursor.execute("INSERT INTO login (name, email) VALUES (%s, %s)", (user_info['name'], user_info['email']))
+            conn.commit()
+            cursor.execute("SELECT * FROM login WHERE email = %s", (user_info['email'],))
+            result = cursor.fetchall()
+            for row in result:
+                print(row)
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")        
+        
         return render_template("login_success.html",user = user_info) #顯示登入成功
 
     except Exception as e:
