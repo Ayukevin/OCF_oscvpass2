@@ -5,7 +5,6 @@ import requests
 import setting
 import mysql.connector
 
-
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
