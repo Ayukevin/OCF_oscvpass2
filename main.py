@@ -9,6 +9,12 @@ import mysql.connector
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+conn = mysql.connector.connect( **setting.my_sql_setting )
+cursor = conn.cursor()
+
+cursor.execute("USE login_db;")
+cursor.execute("SELECT * FROM login_db;")
+
 # 配置 OAuth
 oauth = OAuth(app)
 oauth.register(**setting.google_os_setting) #*:list,tuple ; ** dict
@@ -47,7 +53,7 @@ def auth_callback(provider):
         
         user_info = userinfo_response.json()
         session['user'] = user_info
-        # print(user_info)
+        cursor.execute("INSERT INTO login_db (name,email)VALUES(user_info[name],user_info[email]")
         return render_template("login_success.html",user = user_info) #顯示登入成功
 
     except Exception as e:
