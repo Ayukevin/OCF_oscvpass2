@@ -4,6 +4,8 @@ import os
 import requests
 import setting
 import mysql.connector
+import pandas as pd
+import json
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -38,7 +40,8 @@ def index2():
 def login(provider):
     if provider not in oauth._clients:
         return 'provider not found',404
-    redirect_uri = url_for('auth_callback',provider=provider,_external = True)
+    redirect_uri = "http://127.0.0.1:8080/auth/callback/"+str(provider)#url_for('auth_callback',provider=provider,_external = True)
+    print(redirect_uri)
     return oauth.create_client(provider).authorize_redirect(redirect_uri)
 
 
@@ -73,7 +76,22 @@ def auth_callback(provider):
 
     except Exception as e:
         return f'an error occured:{str(e)}',400
+    
+@app.route('/dump')
+def dump():
+    query = "SELECT * FROM login"
+    df = pd.read_sql(query, conn)
+    df.to_csv('export.csv', index=False)
+    return 'dump successfully'
 
+@app.route('/dump/json')
+def dump_json():
+    cursor.execute("SELECT * FROM login")
+    data=cursor.fetchall()
+    for e in data:
+        json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '), default=str)
+    return 'nice'
+        
 
 @app.route('/logout')
 def logout():
