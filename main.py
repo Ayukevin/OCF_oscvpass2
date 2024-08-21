@@ -4,6 +4,8 @@ import os
 import requests
 import setting
 import mysql.connector
+import pandas as pd 
+import json
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -38,7 +40,7 @@ def index2():
 def login(provider):
     if provider not in oauth._clients:
         return 'provider not found',404
-    redirect_uri = url_for('auth_callback',provider=provider,_external = True)
+    redirect_uri = "https://intern.toomore.net:4443/auth/callback/"+str(provider)
     return oauth.create_client(provider).authorize_redirect(redirect_uri)
 
 
@@ -67,18 +69,34 @@ def auth_callback(provider):
             for row in result:
                 print(row)
         except mysql.connector.Error as err:
-            print(f"Error: {err}")        
+            print(f"Errorla: {err}")        
         
         return render_template("login_success.html",user = user_info) #顯示登入成功
 
     except Exception as e:
         return f'an error occured:{str(e)}',400
 
+@app.route('/dump')
+def dumcsvp(): 
+    conn = mysql.connector.connect( **setting.my_sql_setting )
+    query = "SELECT * FROM login"
+    df = pd.read_sql(query, conn)
+    df.to_csv('export.csv', index=False)
+    return 'dump successfully'
 
+
+
+@app.route('/dump/json')
+def dumpjson():
+    cursor.execute("SELECT * FROM login")
+    data=cursor.fetchall()
+    for e in data:
+        print(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '),default=str))
+    return 'dump successfully'
 @app.route('/logout')
 def logout():
     session.pop('user',None)
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(port=8080,host='0.0.0.0',debug=True)
+    app.run(port=8080,host='0.0.0.0')
