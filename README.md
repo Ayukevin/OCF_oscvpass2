@@ -4,6 +4,11 @@ OSCVPass是我在開放文化基金會（OCF）實習的一個專案，目的在
 
 ## 工作流程
 1. 建立MySql容器做為資料庫
-2. 透過python flask作為後端開發，去寫主體框架
+2. 透過python flask作為後端開發，去撰寫登入頁面
 
+##執行
+1. 先執行 start.sh 建立sql容器
+2. 執行 sec.sh開啟並輸入 mysql -h test -uroot -p < ./init.sql 建立資料表
+3. 最後，執行run.sh開啟網頁便可登入
 
+如果想了解我在OCF實習的心得，可以到我的medium上看
